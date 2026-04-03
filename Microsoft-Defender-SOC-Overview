@@ -1,0 +1,124 @@
+# Mitigating threats using Microsoft Defender XDR
+
+## Objective
+The objective of these notes is to understand how XDR threat protection works in Microsoft Sentinel and how it supports security monitoring and investigation.
+
+## Summary
+Analyze threat data across domains and rapidly remediate threats with built-in orchestration and automation in Microsoft Defender XDR. 
+
+## Key Terms
+| Microsoft Defender |
+| XDR(Extended Detection and Response) |
+| MDO |
+| MDE |
+| Intune |
+| Intune Compliance Policy |
+| Microsoft Entra ID |
+| MEID Conditional Policy | 
+| CAE |
+| Endpoint AV alerts |
+| TIP
+
+## Overview
+- integrated
+- threat protection suite
+- detect malicious activity
+- provide 'attack chain compromise story'
+- enables understanding of the specific threat
+- enables remediation and protection(from future attacks)
+- combines 'signals'(from endpoints/identity/email/applications)
+
+## XDR Response Cases
+- Microsoft Defender for Enpoint detects a malicious payload
+  - victim receives malicous email(on personal email account, not protected by Defender for Office 365 (MDO) or opens an attachment from a USB drive)
+  - malware infects computer(when the attachment is opened)
+  - user is unaware the malware has infected the system
+  - MDE detects attack, raises alert(to SOC), provides details about the threat
+  - disable user access(from device)
+  - MDE communicates with Intune
+    - risk level(on this endpoint) has changed
+  - Intune Compliance Policy(configured with an MDE risk level severity) is triggered), marks the account as non-compliant(with organizational poicy)
+  - Conditional Access(created in Microsoft Entra ID) blocks user access to apps
+  - MDE remediates threat
+    - automated remediation
+    - security analyst approval of automated remediation
+    - analyst manual investigation of threat
+    - across entire enterprise(and other MDE customers)
+  - adds 'information on this attack' to Microsoft Threat Intelligence system
+  - restores access
+    - once infected devices are remediated
+    - MDE signals Intune to change the device risk status
+    - Microsoft Entra ID Condtional Access allows access to enterprise resources
+  - remediates 'threat variants' in MDO and others
+    - threat signals(in Microsoft Threat Intelligence)
+      - used by Microsoft tools to secure 'other parts of an organization's attack surface'
+  - Microsoft Defender for Cloud/MDO
+    - use the threat signals to detect/remediate threats in email/office collaboration/Azure
+  - Conditional Access knowns about device risk
+    - MDE notifies Intune
+    - Intune updates the compliance status of a device(in Microsoft Entra ID)
+    - user is restricted from accessing corporate resources(including all new resource requests)
+    - user is blocked from 'resources that support CAE'
+    - user is stil able to do general internet producitivity tasks(Youtube, Wikipedia, anything that does not require corporate authentication)
+  - Access Restored
+    - MDE triggers Intune to update Microsoft Entra ID
+    - Conditional Access restores user access to corporate resources
+  - mitigates risk(to the organization)
+  - ensures attackers(who might be in control of these devices) cannot access corportate resources
+  - minimizes impact on user productivity
+  - minimizes disruption on business processes
+
+## Microsoft Defender XDR in a SOC
+- assignments of responsibilities vary(based on factors such as organizational size)
+- security operations are composed of several distinct functions
+- each funtion/team has a primary focus area, collaborates with other functions/teams
+- Automation
+  - handle reactive alerts
+  - near real-time resolution of known incident types(well-defined attacks that have been seen many times)
+  - reduces manual effort
+  - provides automated investigation
+  - can prompt for human review before approving remediation sequences
+- Triage(Tier 1)
+  - rapid remediation(of a high volume of well-known incident types)
+  - require expedient human judgement
+  - approve automated remediation workflows
+  - identify anomalous/interesting incidents that warrant escalation or consultation with investigation teams
+  - 90% of incidents should be true positive
+  - XDR produces majority of 'high-quality alerts'. Followed by user reported issues, classic log query based alerts and other sources
+- Tool Integration
+  - integration of XDR tools in Microsoft Defender XDR
+  - allows for a single console(for endpoint/email/identity)
+  - enables rapid discovery and remediation of phishing emails, malware, compromised accounts(before significant damage)
+  - time saving technology
+  - improves 'time to remediation'(in Microsoft CDOC)
+- Focus
+  - teams keep their focus on few technical areas/scenarios(user productivity, email, endpoint AV alerts
+- Investigation and Incident Management(Tier 2)
+  - escalation point from Triage(Tier 1)
+  - directly monitors 'alerts that indicate more sophisticated attackers', alerts that trigger behavioral alerts, special case alerts related to business-critical assets
+  - monitor for ongoing attack campaigns
+  - periodically reviews the Triage team alert queue
+  - proactively hunt(using XDR tools)
+  - provides deeper investigation(into lower volume/more complex attacks), multi-stage attacks(conducted by human attack operators)
+  - handles new/unfamiliar alert types
+  - documents processes for Triage and automation(including alerts generated by Microsoft Defender Cloud, VMs, containers, Kubernetes, SQL databases
+  - coordinates with other teams(legal, communications, leadership, business stakeholders)
+- Hunt and Incident Management(Tier 3)
+  - identify 'attackers that may have slipped through reactive detections'
+  - handle major business-impacting events
+  - hunts for undetected threats
+  - assists with escalations/advanced forensics
+  - refine alerts/automation
+  - operate in hypothesis-driven models
+- Threat Intelligence teams
+  - provide context/insights
+  - supports allo other functions
+  - utilize TIP(in larger organizations)
+  - reactive technical research(for active incidents)
+  - proactive technical research into attacker groups, attack trends, high profile attacks, emerging techniques
+  - strategic analysis, reserach and insights to inform business and technical processes
+## Why It Matters
+Explain why this topic is important for a SOC analyst or security professional.
+
+## Practical Security Relevance
+Explain how this concept helps detect, investigate, or respond to threats.
