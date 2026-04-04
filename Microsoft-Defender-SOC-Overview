@@ -7,19 +7,23 @@ The objective of these notes is to understand how XDR threat protection works in
 Analyze threat data across domains and rapidly remediate threats with built-in orchestration and automation in Microsoft Defender XDR. 
 
 ## Key Terms
-| Microsoft Defender |
-| XDR(Extended Detection and Response) |
-| MDO |
-| MDE |
-| Intune |
-| Intune Compliance Policy |
-| Microsoft Entra ID |
-| MEID Conditional Policy | 
-| CAE |
-| Endpoint AV alerts |
-| TIP
+| Microsoft Defender | Microsoft family of security products. Protects computers, users, email, identities, cloup apps and data. |
+| XDR(Extended Detection and Response) | Security approach. Collects and correlates telemetry from multiple security areas, such as endpoints, identities, email, cloud apps, networks and SaaS services. Allows defenders to detect, investigate and respond to attacks from one place. |
+| MDO | Microsoft's email and collaboration security product. Protects Exchange Online, Microsoft Teams, Sharepoint Online and OneDrive against phishing, malicious links, malware and business email compromise. Cloud-based email filtering service. |
+| MDE | Enterprise endpoint security platform. Helps organizations prevent, detect, investigate and respond to advanced threats on endpoints. |
+| Intune | Cloud-based endpoint management service. Manages and secures devices, apps and data. Manages user access to organizational resources across mobile devices, desktops and virtual endpoints. |
+| Intune Compliance Policy | Set of rules and conditions used by Intune to decide whether a managed device is compliant or non-compliant. |
+| Microsoft Entra ID | cloud-based identity and access management service. Handles user identity, authenticaiton, access control, policies and protection. |
+| MEID Conditional Access Policy | Zero Trust policy engine, using signals to make and enforce access decisions. |
+| CAE(Continuous Access Evaluation | Feature that lets access be re-evaluated in near real-time.  Responds to critical events and Conditional Access policy changes so access can be revoked or rechecked. | 
+| Endpoint AV alerts | Anti-Virus alerts generated on endpoint devices. |
+| TIP(Threat Intelligence Platform) | External threat intelligence product. Collects organizes threat intelligence. Helps teams manage IOCs. Capable of pushing data into tools like Sentinel for detection, hunting and enrichment. |
+| REST API | API that follows the REST style for communication over the web. Client sends HTTP requests to server's resource URLs. Server returns responses in JSON. Stateless(each request must include the information needed for the server to process) |
+| SDK(Software Development Kit) | bundle of tools and code that helps developers build applications for platforms or services. |
+| Federated services | system/orgaization trusts another identity provider to authenticate users(instead of authenticating them locally). Collection of domains that have established trust. |
+| KQL(Kusto Query Language) | Query language for searching/filtering/analyzing/summarizing large amounts of data. Used to explore data, discover patterns, identify anomalies, create statistical models. |
 
-## Overview
+### Overview
 - integrated
 - threat protection suite
 - detect malicious activity
@@ -28,7 +32,7 @@ Analyze threat data across domains and rapidly remediate threats with built-in o
 - enables remediation and protection(from future attacks)
 - combines 'signals'(from endpoints/identity/email/applications)
 
-## XDR Response Cases
+### XDR Response Cases
 - Microsoft Defender for Enpoint detects a malicious payload
   - victim receives malicous email(on personal email account, not protected by Defender for Office 365 (MDO) or opens an attachment from a USB drive)
   - malware infects computer(when the attachment is opened)
@@ -68,7 +72,7 @@ Analyze threat data across domains and rapidly remediate threats with built-in o
   - minimizes impact on user productivity
   - minimizes disruption on business processes
 
-## Microsoft Defender XDR in a SOC
+### Microsoft Defender XDR in a SOC
 - assignments of responsibilities vary(based on factors such as organizational size)
 - security operations are composed of several distinct functions
 - each funtion/team has a primary focus area, collaborates with other functions/teams
@@ -117,8 +121,178 @@ Analyze threat data across domains and rapidly remediate threats with built-in o
   - reactive technical research(for active incidents)
   - proactive technical research into attacker groups, attack trends, high profile attacks, emerging techniques
   - strategic analysis, reserach and insights to inform business and technical processes
+- Microsoft Security Graph
+  - provides 'unified programmability model'
+  - used to access data in Micrososft 365/Windows/Enterprise Mobility + Security
+  - use the data in Microsoft Graph to build customized apps
+  - offers single endpoint
+  - use REST APIs/SDKs to access the endpoint/build apps
+  - includes set of services(that manage user and device identity/access/compliance and security)
+  - helps protect against data leakage/loss
+  - exposes REST APIs/client libraries(to access data on cloud services):
+    - Microsoft 365 core services:
+      - Bookings/Calender/Delve/Excel/Purview eDiscovery/Search/OneDrive/OneNote/Outlook/Exchange/People/Planner/Sharepoint/Teams/To DO/Viva Insights
+    - Enterprise Mobility + Security services
+      - Advanced Threat Analytics/Advanced Threat Protection/Microsoft Entra ID/Identity Manager/Intune
+    - Windows services
+      - activities/devices/notifications/Universal Print
+    - Dynamic 365 Business Central services
+    - developers can use Security Graph to build security services, to:
+      - integrate/correlate security alerts(from multiple sources)
+      - stream alerts to SIEMs
+      - automaticaly send threat indicators to Microsoft security solutions to enable alert/block/allow
+      - unlock contextual data(to inform investigations)
+      - discover opportunities to learn from data/train security solutions
+  - Microsoft Graph Security API
+    - (2) versions(Microsoft Graph REST API v1.0 and Beta)
+      - both support advanced hunting(using 'runHuntingQuery' method in KQL)
+      - beta provides new/enhanced APIs(still in preview status)
+      - APIs in preview status are subject to change, may break existing scenarios without notice
+    - intermediary service/broker
+    - provides single programmatic interface
+    - connects multiple Microsoft Graph Security providers
+    - requests to the Microsoft Graph security API are 'federated'(to all applicable security providers)
+    - results are aggregated then returned to the requesting application
+  - Azure Sentinel
+    - cloud-native SIEM
+    - provides security analytics acrouss enterprise environment
+    - collects data at cloud scale(across all users, devices, applications, infrastructure on premise and in multiple clouds)
+
+### Advanced hunting example in Microsoft Defender XDR
+
+POST https://graph.microsoft.com/v1.0/security/runHuntingQuery
+
+{
+    "Query": "DeviceProcessEvents | where InitiatingProcessFileName =~ \"powershell.exe\" | project Timestamp, FileName, InitiatingProcessFileName | order by Timestamp desc | limit 2"
+}
+
+- request is calling Microsoft Graph Security API endpoint "POST/security/runHuntingQuerty
+- runs an 'advanced hunting KQL query'(against Microsoft 365 Defender)
+- DeviceProcessEvents(advanced hunting table, for process creation and related events. Includes columns such as Timestamp, Filename and InitiatingProcessFilename)
+- DeviceProcessEvnets(chooses 'the table to search')
+- where InitiatingProcessFilename=~ "powershell.exe"(filters to 'rows where the intitating process was Powershell')
+- "=~"(operator, case-insensitive string comparison(in KQL)
+- project Timestamp, FileName, InitiatingProcessFileName(returns only those (3) columns)
+- order by Timestamp desc(sorts newest first)
+- limit 2(returns only the (2) most recent matching rows)
+
+
+## Lab Walkthrough
+
+Overview: Detect and Respond to modern attacks with unified SIEM and XDR capabilities
+
+### Step 1: From  Azure Sentinel overview screen, press click on 'Incidents'
+- overview of all detected incidents in an environment
+- (3) incidents were created by Microsoft 365 Defender/Azure Sentinel and Azure Defender
+- (1) high severity incident created by Azure Defender is titled "Potential malware uploaded...". Incident ID of (8)
+
+### Step 2: Clicked on 'High Severity Incident', then Clicked on Investigate in Azure Defender
+- Screen provides alert details about the incident
+   - Azure AD user
+   - Service Type(Azure Blobs)
+   - User Agent
+   - Container(contosoonlinesstorage)
+   - API type(Blob)
+   - Client Location
+   - Blob(xxdh.exe)
+   - Authentication Type(Shared access signature(SAS))
+   - Operations Type(PutBlob)
+   - Malware Description
+   - Detection Source
+   - Resource ID and Subscription ID
+- each incident has 'related entities'
+  - Azure Resource(Shows the Resource ID and Subscription ID)
+  - File(Details about the potential malware file detected in the storage account. Shows Filename, Directory, Host and File Hashes)
+  - Malware(details the name of the malware)
+
+### Step 3: Take Action Tab
+- provides recommended steps that an admin can take to mitigate a threat, such as:
+  - remove malicious blob from storage account
+  - limit access to storage account, following least privilege principle
+  - revoke all storage access tokens that maybe compromised/ensure that access tokens are only shared with authorized users
+  - ensure storage access tokens are stored in a secure location, such as Azure Key Vault
+- provides preventative security recommendations, such as:
+  - storage account should use a private link connection
+  - storage accounts should restrict network access using virtual network rules
+  - Storage account public access should be disallowed
+
+### Step 4: Clicked on recommendation: Storage account public access should be disallowed, then clicked Remediation Steps
+- offers 'Quick fix logic' and 'Manual Remediation'
+
+### Step 5: Clicked 'Quick Fix Logic'
+- provides an automation remediation script
+
+### Step 6: Clicked 'Fix', then 'Fix (1) resource'
+- Incident was successfully remediated
+
+### Step 7: From the incidents tab, clicked on Investigate in Azure Defender
+- provides investigation graph(for the incident)
+  - helps understand the scope and identify root cause of a potential security threat
+  - correlates relevant data with any involved entity
+- Blob storage alert is triggered(when Azure defender detects malware with a known bad hash being uploaded to Azure blob storage
+
+### Step 8: Clicked 'Linked malicious storage artifacts'
+- Shows
+  - SystemAlertID
+  - Tactics
+  - AlertDisplayName
+  - Description
+  - ConfidenceLevel
+  - Severity
+
+### Step 9: Clicked 'View playbooks'
+- When executed, playbook will share the new filehashes with Microsoft 365 Defender to detect the prescence of hashes on machines within a network
+
+### Step 10: Ran 'playbook'
+- "WriteIndicator-GraphAPI" was triggered successfully
+
+### Step 11: From Incidents page, clicked on 'Multi-stage incident involving Initial access & credential access'
+
+### Step 12: Take ownership of incident, click 'Assign to me', then click Apply
+
+### Step 13: Clicked on 'Investigate in Microsoft Defender 365
+- page provides summary of the incident(associated alerts, categories, scope, evidence and other information
+
+### Step 14: Clicked 'Manage incident'
+- details incident name, incident tags, assignment, classification and comments
+
+### Step 15: Clicked 'Alerts'
+- to establish how the attacker may have gained access to a machinen on the network
+- (3) alerts were triggered when an Office application ran suspicious Powershell commands
+
+### Step 16: Expand the alert
+- Microsoft Word was used to open an attached file
+- probably arrived via phishing e-mail
+- after Powershell commands were run, number of suspicious PS commands were run
+- command.exe spawned x.exe
+- Powershell execution occured that 'called out' to the same IP address seen in the Blob storage attack
+
+### Step 17: Investigate whether servicehost.exe is associated with any other incidents, clicked 'Investigate'
+- graph shows full scope of the intrusion, using first and third-party alerts and log sources
+- shows the impacted machine/user account/Microsoft Defender alert
+- file has from earlier incident was associated with Microsoft Defender incident(linking the on-premise 365 Defender alert with the Azure Defender Blob storage alert
+- servicehost.exe file used for persistence on-prem was uploaded to Blob storage by the attacker
+- custome detection rule allowed indicator sharing with Microsoft 365 Defender, making the connection possible
+- Another analyst investigated Azure Activity logs for additional malicious IP activity.
+
+### Step 18: Clicked 'Subscription Activity'
+- query results show attacker used the user account to view Blob storage keys
+- attacker used keys to upload files to Blob storage(likely for persistence)
+
+### Step 19: Scroll to 'Last Comment' to view remediation
+- automation rule playbook was triggered
+- account has been blocked in Azure AD(due to its suspected involvement in credential theft activity
+
+### Step 20: View the automation rule
+- page displays Automation rule(Actions, Expiration Date, Created by, rule creation, last modified and status)
+- rule: Block AAD User implicated
+- when incident is created
+  - rule checks if any 'analytic files' have tactics containing credential access and if the incident provider was Microsoft 365 Defender
+
+
 ## Why It Matters
-Explain why this topic is important for a SOC analyst or security professional.
+Tools like KQL, Defender and Sentinel are the what analyst actually use to find, verify and discover the scope of suspcicious activity.  These tools answer whether the alert is real, how many devices are affected, when and where it started, the context of the incident and recommended mitigation and remediation steps. 
+
 
 ## Practical Security Relevance
-Explain how this concept helps detect, investigate, or respond to threats.
+Microsoft Defender helps analysts see the full attack chain, increase the speed of investigation and containment.
